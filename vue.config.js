@@ -32,11 +32,12 @@ module.exports = {
   devServer: {
     port: port,
     open: true,
+    https: false,
     overlay: {
       warnings: false,
       errors: true
     },
-    before: require('./mock/mock-server.js')
+    before: require('./mock/mock-server.js'),
   },
   configureWebpack: {
     // provide the app's title in webpack's name field, so that
