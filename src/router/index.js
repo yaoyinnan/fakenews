@@ -43,6 +43,9 @@ export const constantRoutes = [
     hidden: true
   },
 
+  /**
+   * 首页
+   */
   {
     path: '/',
     component: Layout,
@@ -50,8 +53,59 @@ export const constantRoutes = [
     children: [{
       path: 'dashboard',
       name: 'Dashboard',
-      component: () => import('@/views/dashboard/index'),
-      meta: { title: 'Dashboard', icon: 'dashboard' }
+      component: () => import('@/views/detect/index'),
+      meta: { title: '虚假新闻检测系统', icon: 'dashboard' }
+    }]
+  },
+
+  /**
+   * 假新闻检测
+   */
+  {
+    path: '/detect',
+    component: Layout,
+    redirect: '/detect/index',
+    name: 'Detect',
+    meta: { title: '假新闻检测', icon: 'el-icon-aim' },
+    children: [{
+      path: 'detect',
+      name: 'Detect',
+      component: () => import('@/views/detect/index'),
+      meta: { title: '人工检测', icon: 'form' }
+    },
+      {
+      path: 'recent',
+      name: 'Recent',
+      component: () => import('@/views/detect/recent'),
+      meta: { title: '近日新闻', icon: 'el-icon-receiving' }
+    }]
+  },
+
+  /**
+   * 自动检测
+   */
+  {
+    path: '/autoDetect',
+    component: Layout,
+    children: [{
+      path: 'autoDetect',
+      name: 'AutoDetect',
+      component: () => import('@/views/autoDetect/index'),
+      meta: { title: '自动检测', icon: 'el-icon-s-help' }
+    }]
+  },
+
+  /**
+   * 新闻审核
+   */
+  {
+    path: '/review',
+    component: Layout,
+    children: [{
+      path: 'review',
+      name: 'Review',
+      component: () => import('@/views/review/index'),
+      meta: { title: '新闻审核', icon: 'link' }
     }]
   },
 

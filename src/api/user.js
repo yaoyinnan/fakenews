@@ -8,27 +8,24 @@ export function register(query) {
   })
 }
 
-export function login(headers, query) {
+export function login(query) {
   return request({
     url: '/user/index/login',
     method: 'post',
-    headers: headers,
     data: query,
   })
 }
 
-export function getInfo(headers, query) {
+export function getInfo() {
   return request({
     url: '/user/user/getInfo',
     method: 'get',
-    headers: headers,
-    params: query,
   })
 }
 
 export function logout() {
   return request({
-    url: '/user/index/logout',
+    url: '/user/user/logout',
     method: 'post',
   })
 }

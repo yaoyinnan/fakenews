@@ -115,3 +115,5 @@ export function param2Obj(url) {
   })
   return obj
 }
+
+export default parseTime

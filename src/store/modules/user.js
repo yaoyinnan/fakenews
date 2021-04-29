@@ -5,8 +5,9 @@ import { resetRouter } from '@/router'
 const getDefaultState = () => {
   return {
     token: getToken(),
-    name: '',
-    avatar: ''
+    nickname: '',
+    sex: '',
+    avatar: "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif"
   }
 }
 
@@ -19,25 +20,19 @@ const mutations = {
   SET_TOKEN: (state, token) => {
     state.token = token
   },
-  SET_NAME: (state, name) => {
-    state.name = name
+  SET_NICKNAME: (state, nickname) => {
+    state.nickname = nickname
   },
-  SET_AVATAR: (state, avatar) => {
-    state.avatar = avatar
+  SET_SEX: (state, sex) => {
+    state.sex = sex
   }
 }
 
 const actions = {
   // user login
-  login({ commit }, userInfo) {
-    const { username, password } = userInfo
+  login({ commit }, data) {
     return new Promise((resolve, reject) => {
-        // let data = this.$qs.stringify({
-        //   'username': username.trim(),
-        //   'password':  password
-        // });
-        // login({}, data).then(response => {
-      login({}, { username: username.trim(), password: password }).then(response => {
+      login(data).then(response => {
         const { data } = response
         commit('SET_TOKEN', data.token)
         setToken(data.token)
@@ -49,17 +44,15 @@ const actions = {
   },
 
   // get user info
-  getInfo({ commit, state }) {
+  getInfo({ commit }) {
     return new Promise((resolve, reject) => {
-      getInfo({}, {}).then(response => {
+      getInfo().then(response => {
         const { data } = response
-        console.log(data)
         if (!data) {
           return reject('Verification failed, please Login again.')
         }
 
         const { nickname, sex } = data
-        console.log(data)
         commit('SET_NICKNAME', nickname)
         commit('SET_SEX', sex)
         resolve(data)
@@ -70,9 +63,9 @@ const actions = {
   },
 
   // user logout
-  logout({ commit, state }) {
+  logout({ commit }) {
     return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
+      logout().then(() => {
         removeToken() // must remove  token  first
         resetRouter()
         commit('RESET_STATE')
