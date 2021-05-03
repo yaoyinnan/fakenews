@@ -4,7 +4,7 @@
 
       <div class="title-container">
         <h3 class="title">虚假新闻检测系统</h3>
-        <h3 class="title">登录</h3>
+        <h3 class="title">注册</h3>
       </div>
 
       <el-form-item prop="username">
@@ -42,8 +42,23 @@
         </span>
       </el-form-item>
 
-      <el-button :loading="loading" type="primary" style="width:48.5%;margin-bottom:30px;" @click.native.prevent="handleLogin">登录</el-button>
-      <el-button :loading="loading" type="primary" style="width:48.5%;margin-bottom:30px;" @click.native.prevent="toRegister">注册</el-button>
+      <el-form-item prop="nickname">
+        <span class="svg-container">
+          <svg-icon icon-class="user" />
+        </span>
+        <el-input
+          ref="nickname"
+          v-model="loginForm.nickname"
+          placeholder="Nickname"
+          name="nickname"
+          type="text"
+          tabindex="1"
+          auto-complete="on"
+        />
+      </el-form-item>
+
+      <el-button :loading="loading" type="primary" style="width:48.5%;margin-bottom:30px;" @click.native.prevent="toLogin">登录</el-button>
+      <el-button :loading="loading" type="primary" style="width:48.5%;margin-bottom:30px;" @click.native.prevent="handleLogin">注册</el-button>
 
       <div class="tips">
         <span style="margin-right:20px;">用户名: admin</span>
@@ -55,7 +70,6 @@
 </template>
 
 <script>
-  import { getToken } from '@/utils/auth'
   import { MessageBox, Message } from 'element-ui'
 
   export default {
@@ -75,14 +89,23 @@
           callback()
         }
       }
+      const validateNickname = (rule, value, callback) => {
+        if (value.length === 0) {
+          callback(new Error('请输入你的昵称。'))
+        } else {
+          callback()
+        }
+      }
       return {
         loginForm: {
-          username: 'admin',
-          password: 'aaaaaa'
+          username: 'yaoyinnan',
+          password: 'aaaaaa',
+          nickname: '两步',
         },
         loginRules: {
           username: [{ required: true, trigger: 'blur', validator: validateUsername }],
-          password: [{ required: true, trigger: 'blur', validator: validatePassword }]
+          password: [{ required: true, trigger: 'blur', validator: validatePassword }],
+          nickname: [{ required: true, trigger: 'blur', validator: validateNickname }]
         },
         loading: false,
         passwordType: 'password',
@@ -112,9 +135,14 @@
         this.$refs.loginForm.validate(valid => {
           if (valid) {
             this.loading = true
-            this.$store.dispatch('user/login', this.loginForm).then(() => {
-              this.$router.push({ path: this.redirect || '/' })
+            this.$store.dispatch('user/register', this.loginForm).then(() => {
+              this.$router.push({ path: this.redirect || '/login' })
               this.loading = false
+              Message({
+                message: '注册成功',
+                type: 'success',
+                duration: 5 * 1000
+              })
             }).catch(() => {
               this.loading = false
             })
@@ -124,8 +152,8 @@
           }
         })
       },
-      toRegister(){
-        this.$router.push({ path: '/register' })
+      toLogin(){
+        this.$router.push({ path: '/login' })
       }
     }
   }

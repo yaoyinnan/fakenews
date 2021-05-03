@@ -1,23 +1,74 @@
 <template>
   <div class="app-container">
-    <!--Form-->
-    <div class="form">
-      <el-form ref="form" :model="form" label-width="120px">
-        <el-form-item label="关键词">
-          <el-input v-model="form.keyword"/>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="submit">提交</el-button>
-          <el-button @click="onEmpty">清空</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
-
-    <el-divider></el-divider>
-
     <!--Table-->
     <div class="display">
-      <el-button type="danger" @click="deleteKeyword">删除</el-button>
+      <el-tag v-if="is_default" class="tag">{{keyword}}</el-tag>
+      <el-tag v-if="is_default" class="tag">{{allTableData.length}}</el-tag>
+      <el-table
+        ref="multipleTable"
+        :data="tableData"
+        tooltip-effect="dark"
+        :default-sort="{prop: 'created_at', order: 'descending'}"
+        style="width: 100%"
+        @selection-change="handleSelectionChange">
+        <!--<el-table-column-->
+        <!--type="selection"-->
+        <!--width="55">-->
+        <!--</el-table-column>-->
+        <el-table-column
+          prop="create_time"
+          label="发布日期"
+          width="150"
+          sortable>
+          <template #default="scope">{{ scope.row.create_time }}</template>
+        </el-table-column>
+        <el-table-column
+          label="关键词"
+          width="150"
+          sortable>
+          <template #default="scope">{{keyword}}</template>
+        </el-table-column>
+        <el-table-column
+          prop="label"
+          label="真假性"
+          width="100"
+          sortable
+          :filters="[{ text: '中立', value: '中立' }, { text: '虚假', value: '虚假' }, { text: '真实', value: '真实' }]"
+          :filter-method="filterLabel"
+          filter-placement="bottom-end">
+          <template #default="scope">
+            <el-tag
+              :type="labelColor[scope.row.label]"
+              disable-transitions>{{scope.row.label}}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="score"
+          label="检测值"
+          width="300"
+          show-overflow-tooltip>
+          <template #default="scope">
+            <el-progress :percentage="scope.row.n_score * 100" :format="format_n" class="el-bg-inner-n">
+            </el-progress>
+            <el-progress :percentage="scope.row.f_score * 100" :format="format_f" class="el-bg-inner-f">
+            </el-progress>
+            <el-progress :percentage="scope.row.r_score * 100" :format="format_r" class="el-bg-inner-r">
+            </el-progress>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="topics"
+          label="话题"
+          width="300"
+          sortable>
+          <template #default="scope">{{ scope.row.topics }}</template>
+        </el-table-column>
+        <el-table-column
+          prop="content"
+          label="正文">
+        </el-table-column>
+      </el-table>
 
       <el-pagination
         background
@@ -31,60 +82,6 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="allTableData.length">
       </el-pagination>
-
-      <el-table
-        ref="multipleTable"
-        :data="tableData"
-        tooltip-effect="dark"
-        :default-sort="{prop: 'update_time', order: 'descending'}"
-        style="width: 100%"
-        @selection-change="handleSelectionChange">
-        <el-table-column
-          type="selection"
-          width="55">
-        </el-table-column>
-        <el-table-column
-          prop="create_time"
-          label="创建时间"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.create_time }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="update_time"
-          label="更新时间"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.update_time }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="total"
-          label="新闻数目"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.total }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="total_detected"
-          label="已检测数目"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.total_detected }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="keyword"
-          label="关键词">
-          <template #default="scope">{{ scope.row.keyword}}</template>
-        </el-table-column>
-        <el-table-column
-          fixed="right"
-          label="操作"
-          width="100">
-          <template #default="scope">
-            <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
     </div>
   </div>
 </template>
@@ -96,15 +93,21 @@
   export default {
     data() {
       return {
-        form: {
-          keyword: ''
-        },
+        is_default: true,
+        keyword_id: null,
+        keyword: '1',
+        total_detected: null,
         allTableData: [],
         tableData: [],
         multipleSelection: [],
+        labelColor: {
+          '中立': 'info',
+          '虚假': 'danger',
+          '真实': 'primary'
+        },
         pagination: {
           currentPage: 1,
-          pageSizes: [10, 25, 50, 100, 250, 500, 1000],
+          pageSizes: [25, 50, 100, 250, 500, 1000],
           pageSize: null,
           pageCount: 11
         }
@@ -113,15 +116,19 @@
     },
     mounted() {
       this.setDefault()
-      this.getKeyword()
+      this.getNews()
     },
     methods: {
       setDefault() {
+        this.is_default = false
         this.pagination.pageSize = this.pagination.pageSizes[0]
+        this.keyword = this.$route.query.keyword
+        this.keyword_id = this.$route.query.keyword_id
+        this.is_default = true
       },
-      getKeyword() {
-        this.$store.dispatch('keyword/getKeyword').then((res) => {
-          this.allTableData = res.data.keyword_list
+      getNews() {
+        this.$store.dispatch('keyword/getKeywordNews', { 'keyword_id': this.$route.query.keyword_id }).then((res) => {
+          this.allTableData = res.data.news_list
           this.getPage()
         })
       },
@@ -130,42 +137,6 @@
         let start_i = (currentPage - 1) * this.pagination.pageSize
         let end_i = currentPage * this.pagination.pageSize
         this.tableData = JSON.parse(JSON.stringify(this.allTableData.slice(start_i, end_i)))
-      },
-      submit() {
-        let data = {
-          'keyword': this.form.keyword,
-          'create_time': parseTime(new Date(), '{y}-{m}-{d} {h}:{i}:{s}')
-        }
-        this.$store.dispatch('keyword/addKeyword', data).then((res) => {
-          data['keyword_id'] = res.keyword_id
-          data['update_time'] = data['create_time']
-          data['total'] = 0
-          data['total_detected'] = 0
-          this.handleSubmitKeyword_id(data)
-        })
-      },
-      onEmpty() {
-        this.form.desc = ''
-        this.form.region = ''
-      },
-      deleteKeyword() {
-        MessageBox.confirm('确定删除？', {
-          confirmButtonText: '删除',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          for (let item in this.multipleSelection) {
-            this.$store.dispatch('keyword/deleteKeyword', { 'keyword_id': this.multipleSelection[item].keyword_id }).then((res) => {
-              for (let tab_i in this.tableData) {
-                if (this.tableData[tab_i].keyword_id === this.multipleSelection[item].keyword_id) {
-                  this.allTableData.splice(tab_i, 1)
-                  this.tableData.splice(tab_i, 1)
-                  this.getPage()
-                }
-              }
-            })
-          }
-        })
       },
       toggleSelection(rows) {
         if (rows) {
@@ -201,16 +172,10 @@
         let end_i = currentPage * this.pagination.pageSize
         this.tableData = JSON.parse(JSON.stringify(this.allTableData.slice(start_i, end_i)))
       },
-      handleSubmitKeyword_id(data) {
+      handleDetectNews(data) {
         this.allTableData.unshift(data)
         this.pagination.currentPage = 1
         this.getPage()
-      },
-      handleClick(row) {
-        this.$router.push({
-          path: '/autoDetectItem',
-          query: { 'keyword': row.keyword, 'keyword_id': row.keyword_id }
-        })
       }
     }
   }
@@ -223,6 +188,14 @@
 </style>
 
 <style>
+  .keyword {
+    color: #909399;
+  }
+
+  .tag{
+    margin-right: 10px;
+  }
+
   .el-form-item__content {
     margin-right: 60px;
   }

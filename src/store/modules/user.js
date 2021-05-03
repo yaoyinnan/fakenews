@@ -29,6 +29,16 @@ const mutations = {
 }
 
 const actions = {
+  register({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      register(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
   // user login
   login({ commit }, data) {
     return new Promise((resolve, reject) => {
