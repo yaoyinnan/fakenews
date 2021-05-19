@@ -43,6 +43,7 @@
         ref="multipleTable"
         :data="tableData"
         tooltip-effect="dark"
+        :highlight-current-row="hightlight"
         :default-sort="{prop: 'create_time', order: 'descending'}"
         style="width: 100%"
         @selection-change="handleSelectionChange">
@@ -77,6 +78,22 @@
           label="正文"
           show-overflow-tooltip>
         </el-table-column>
+        <el-table-column
+          fixed="right"
+          label="操作"
+          width="200">
+          <template #default="scope">
+            <el-button @click="handleFavorites(scope.row)" type="text" size="small">
+              <i :class="[scope.row.is_favorites?'el-icon-star-on':'el-icon-star-off']"></i>收藏
+            </el-button>
+            <el-button @click="handleEvidence(scope.row)" type="text" size="small">
+              <i class="el-icon-video-camera"></i>证据
+            </el-button>
+            <el-button @click="handleDelete(scope.row)" type="text" size="small">
+              <i class="el-icon-delete"></i>删除
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </div>
   </div>
@@ -106,8 +123,8 @@
           pageSizes: [5, 10, 25, 50, 100, 250, 500, 1000],
           pageSize: null,
           pageCount: 11
-        }
-
+        },
+        hightlight: false
       }
     },
     mounted() {
@@ -137,8 +154,15 @@
           'create_time': parseTime(new Date(), '{y}-{m}-{d} {h}:{i}:{s}')
         }
         this.$store.dispatch('review/addReview', data).then((res) => {
-          data['review_id'] = res.review_id
+          data['review_id'] = res.data.review_id
           this.handleSubmitReview_id(data)
+          this.hightlight = true
+          this.setCurrent(this.tableData[0])
+          let _this = this
+          setTimeout(function() {
+            _this.setCurrent()
+            _this.hightlight = false
+          }, 5000)
         })
       },
       onEmpty() {
@@ -152,7 +176,7 @@
           type: 'warning'
         }).then(() => {
           for (let item in this.multipleSelection) {
-            this.$store.dispatch('review/deleteReview', { "review_id": this.multipleSelection[item].review_id }).then((res) => {
+            this.$store.dispatch('review/deleteReview', { 'review_id': this.multipleSelection[item].review_id }).then((res) => {
               for (let tab_i in this.tableData) {
                 if (this.tableData[tab_i].review_id === this.multipleSelection[item].review_id) {
                   this.allTableData.splice(tab_i, 1)
@@ -179,6 +203,9 @@
       filterLabel(value, row) {
         return row.label === value
       },
+      setCurrent(row) {
+        this.$refs.multipleTable.setCurrentRow(row)
+      },
       format_n(p) {
         return '中立：' + (p / 100).toFixed(10)
       },
@@ -202,6 +229,32 @@
         this.allTableData.unshift(data)
         this.pagination.currentPage = 1
         this.getPage()
+      },
+      handleFavorites(row) {
+        this.$store.dispatch('review/favoriteReview', { 'review_id': row['review_id'] }).then((res) => {
+          if (res.statusCode === 200) {
+            this.getReview()
+          }
+        })
+      },
+      handleEvidence(row) {
+        this.$router.push({
+          path: '/evidence',
+          query: { 'review_id': row.review_id }
+        })
+      },
+      handleDelete(row) {
+        MessageBox.confirm('确定删除？', {
+          confirmButtonText: '删除',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$store.dispatch('review/deleteReview', { 'review_id': row['review_id'] }).then((res) => {
+            if (res.statusCode === 200) {
+              this.getReview()
+            }
+          })
+        })
       }
     }
   }

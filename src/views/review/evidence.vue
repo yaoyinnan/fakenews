@@ -3,11 +3,11 @@
     <!--Form-->
     <div class="form">
       <el-form ref="form" :model="form" label-width="120px">
-        <el-form-item label="关键词">
-          <el-input v-model="form.keyword"/>
+        <el-form-item label="证据内容">
+          <el-input v-model="form.desc" type="textarea"/>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="submit">提交</el-button>
+          <el-button type="primary" @click="submit">提交证据</el-button>
           <el-button @click="onEmpty">清空</el-button>
         </el-form-item>
       </el-form>
@@ -17,7 +17,9 @@
 
     <!--Table-->
     <div class="display">
-      <el-button type="danger" @click="deleteKeyword">删除</el-button>
+      <!--<el-tag v-if="is_default" class="tag">{{keyword}}</el-tag>-->
+      <!--<el-tag v-if="is_default" class="tag">{{allTableData.length}}</el-tag>-->
+      <el-button type="danger" @click="deleteNews">删除</el-button>
 
       <el-pagination
         background
@@ -37,7 +39,7 @@
         :data="tableData"
         tooltip-effect="dark"
         :highlight-current-row="hightlight"
-        :default-sort="{prop: 'update_time', order: 'descending'}"
+        :default-sort="{prop: 'created_at', order: 'descending'}"
         style="width: 100%"
         @selection-change="handleSelectionChange">
         <el-table-column
@@ -46,45 +48,20 @@
         </el-table-column>
         <el-table-column
           prop="create_time"
-          label="创建时间"
+          label="发布日期"
           width="150"
           sortable>
           <template #default="scope">{{ scope.row.create_time }}</template>
         </el-table-column>
         <el-table-column
-          prop="update_time"
-          label="更新时间"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.update_time }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="total"
-          label="新闻数目"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.total }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="total_detected"
-          label="已检测数目"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.total_detected }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="keyword"
-          label="关键词">
-          <template #default="scope">{{ scope.row.keyword}}</template>
+          prop="content"
+          label="证据">
         </el-table-column>
         <el-table-column
           fixed="right"
           label="操作"
           width="200">
           <template #default="scope">
-            <el-button @click="handleItem(scope.row)" type="text" size="small">
-              <i class="el-icon-folder-opened"></i>查看
-            </el-button>
             <el-button @click="handleDelete(scope.row)" type="text" size="small">
               <i class="el-icon-delete"></i>删除
             </el-button>
@@ -103,31 +80,42 @@
     data() {
       return {
         form: {
-          keyword: ''
+          desc: ''
         },
+        is_default: true,
+        review_id: null,
+        total_detected: null,
         allTableData: [],
         tableData: [],
         multipleSelection: [],
+        labelColor: {
+          '中立': 'info',
+          '虚假': 'danger',
+          '真实': 'primary'
+        },
         pagination: {
           currentPage: 1,
-          pageSizes: [10, 25, 50, 100, 250, 500, 1000],
+          pageSizes: [25, 50, 100, 250, 500, 1000],
           pageSize: null,
           pageCount: 11
         },
-        hightlight: false,
+        hightlight: false
       }
     },
     mounted() {
       this.setDefault()
-      this.getKeyword()
+      this.getEvidence()
     },
     methods: {
       setDefault() {
+        this.is_default = false
         this.pagination.pageSize = this.pagination.pageSizes[0]
+        this.review_id = this.$route.query.review_id
+        this.is_default = true
       },
-      getKeyword() {
-        this.$store.dispatch('keyword/getKeyword').then((res) => {
-          this.allTableData = res.data.keyword_list
+      getEvidence() {
+        this.$store.dispatch('evidence/getEvidence', { 'review_id': this.$route.query.review_id }).then((res) => {
+          this.allTableData = res.data.evidence_list
           this.getPage()
         })
       },
@@ -139,15 +127,13 @@
       },
       submit() {
         let data = {
-          'keyword': this.form.keyword,
+          'content': this.form.desc,
+          'review_id': this.review_id,
           'create_time': parseTime(new Date(), '{y}-{m}-{d} {h}:{i}:{s}')
         }
-        this.$store.dispatch('keyword/addKeyword', data).then((res) => {
-          data['keyword_id'] = res.data.keyword_id
-          data['update_time'] = data['create_time']
-          data['total'] = 0
-          data['total_detected'] = 0
-          this.handleSubmitKeyword_id(data)
+        this.$store.dispatch('evidence/addEvidence', data).then((res) => {
+          data['evidence_id'] = res.data.evidence_id
+          this.handleSubmitEvidence_id(data)
           this.hightlight = true
           this.setCurrent(this.tableData[0])
           let _this = this
@@ -159,23 +145,21 @@
       },
       onEmpty() {
         this.form.desc = ''
-        this.form.region = ''
       },
-      deleteKeyword() {
+      deleteNews() {
         MessageBox.confirm('确定删除？', {
           confirmButtonText: '删除',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
           for (let item in this.multipleSelection) {
-            this.$store.dispatch('keyword/deleteKeyword', { 'keyword_id': this.multipleSelection[item].keyword_id }).then((res) => {
+            this.$store.dispatch('evidence/deleteEvidence', { 'evidence_id': this.multipleSelection[item].evidence_id }).then((res) => {
               for (let tab_i in this.tableData) {
-                if (this.tableData[tab_i].keyword_id === this.multipleSelection[item].keyword_id) {
-                  this.allTableData.splice(tab_i, 1)
+                if (this.tableData[tab_i].review_id === this.multipleSelection[item].review_id) {
                   this.tableData.splice(tab_i, 1)
-                  this.getPage()
                 }
               }
+              this.getEvidence()
             })
           }
         })
@@ -196,7 +180,7 @@
         return row.label === value
       },
       setCurrent(row) {
-        this.$refs.multipleTable.setCurrentRow(row);
+        this.$refs.multipleTable.setCurrentRow(row)
       },
       format_n(p) {
         return '中立：' + (p / 100).toFixed(10)
@@ -217,16 +201,10 @@
         let end_i = currentPage * this.pagination.pageSize
         this.tableData = JSON.parse(JSON.stringify(this.allTableData.slice(start_i, end_i)))
       },
-      handleSubmitKeyword_id(data) {
+      handleSubmitEvidence_id(data) {
         this.allTableData.unshift(data)
         this.pagination.currentPage = 1
         this.getPage()
-      },
-      handleItem(row) {
-        this.$router.push({
-          path: '/autoDetectItem',
-          query: { 'keyword': row.keyword, 'keyword_id': row.keyword_id }
-        })
       },
       handleDelete(row) {
         MessageBox.confirm('确定删除？', {
@@ -234,9 +212,9 @@
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.$store.dispatch('keyword/deleteKeyword', { 'keyword_id': row['keyword_id'] }).then((res) => {
+          this.$store.dispatch('evidence/deleteEvidence', { 'evidence_id': row['evidence_id'] }).then((res) => {
             if (res.statusCode === 200) {
-              this.getReview()
+              this.getEvidence()
             }
           })
         })
@@ -252,6 +230,14 @@
 </style>
 
 <style>
+  .keyword {
+    color: #909399;
+  }
+
+  .tag{
+    margin-right: 10px;
+  }
+
   .el-form-item__content {
     margin-right: 60px;
   }

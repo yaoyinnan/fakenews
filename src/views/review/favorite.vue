@@ -1,23 +1,8 @@
 <template>
   <div class="app-container">
-    <!--Form-->
-    <div class="form">
-      <el-form ref="form" :model="form" label-width="120px">
-        <el-form-item label="关键词">
-          <el-input v-model="form.keyword"/>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="submit">提交</el-button>
-          <el-button @click="onEmpty">清空</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
-
-    <el-divider></el-divider>
-
     <!--Table-->
     <div class="display">
-      <el-button type="danger" @click="deleteKeyword">删除</el-button>
+      <el-button type="danger" @click="deleteNews">删除</el-button>
 
       <el-pagination
         background
@@ -36,8 +21,7 @@
         ref="multipleTable"
         :data="tableData"
         tooltip-effect="dark"
-        :highlight-current-row="hightlight"
-        :default-sort="{prop: 'update_time', order: 'descending'}"
+        :default-sort="{prop: 'create_time', order: 'descending'}"
         style="width: 100%"
         @selection-change="handleSelectionChange">
         <el-table-column
@@ -46,44 +30,41 @@
         </el-table-column>
         <el-table-column
           prop="create_time"
-          label="创建时间"
+          label="日期"
           width="150"
           sortable>
           <template #default="scope">{{ scope.row.create_time }}</template>
         </el-table-column>
         <el-table-column
-          prop="update_time"
-          label="更新时间"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.update_time }}</template>
+          prop="label"
+          label="真假性"
+          width="100"
+          sortable
+          :filters="[{ text: '中立', value: '中立' }, { text: '虚假', value: '虚假' }, { text: '真实', value: '真实' }]"
+          :filter-method="filterLabel"
+          filter-placement="bottom-end">
+          <template #default="scope">
+            <el-tag
+              :type="labelColor[scope.row.label]"
+              disable-transitions>{{scope.row.label}}
+            </el-tag>
+          </template>
         </el-table-column>
         <el-table-column
-          prop="total"
-          label="新闻数目"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.total }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="total_detected"
-          label="已检测数目"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.total_detected }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="keyword"
-          label="关键词">
-          <template #default="scope">{{ scope.row.keyword}}</template>
+          prop="content"
+          label="正文"
+          show-overflow-tooltip>
         </el-table-column>
         <el-table-column
           fixed="right"
           label="操作"
           width="200">
           <template #default="scope">
-            <el-button @click="handleItem(scope.row)" type="text" size="small">
-              <i class="el-icon-folder-opened"></i>查看
+            <el-button @click="handleFavorites(scope.row)" type="text" size="small">
+              <i :class="[scope.row.is_favorites?'el-icon-star-on':'el-icon-star-off']"></i>收藏
+            </el-button>
+            <el-button @click="handleEvidence(scope.row)" type="text" size="small">
+              <i class="el-icon-video-camera"></i>证据
             </el-button>
             <el-button @click="handleDelete(scope.row)" type="text" size="small">
               <i class="el-icon-delete"></i>删除
@@ -97,37 +78,37 @@
 
 <script>
   import { MessageBox } from 'element-ui'
-  import parseTime from '../../utils/index'
 
   export default {
     data() {
       return {
-        form: {
-          keyword: ''
-        },
         allTableData: [],
         tableData: [],
         multipleSelection: [],
+        labelColor: {
+          '中立': 'info',
+          '虚假': 'danger',
+          '真实': 'primary'
+        },
         pagination: {
           currentPage: 1,
           pageSizes: [10, 25, 50, 100, 250, 500, 1000],
           pageSize: null,
           pageCount: 11
-        },
-        hightlight: false,
+        }
       }
     },
     mounted() {
       this.setDefault()
-      this.getKeyword()
+      this.getFavoriteReview()
     },
     methods: {
       setDefault() {
         this.pagination.pageSize = this.pagination.pageSizes[0]
       },
-      getKeyword() {
-        this.$store.dispatch('keyword/getKeyword').then((res) => {
-          this.allTableData = res.data.keyword_list
+      getFavoriteReview() {
+        this.$store.dispatch('review/getFavoriteReview').then((res) => {
+          this.allTableData = res.data.review_list
           this.getPage()
         })
       },
@@ -137,45 +118,20 @@
         let end_i = currentPage * this.pagination.pageSize
         this.tableData = JSON.parse(JSON.stringify(this.allTableData.slice(start_i, end_i)))
       },
-      submit() {
-        let data = {
-          'keyword': this.form.keyword,
-          'create_time': parseTime(new Date(), '{y}-{m}-{d} {h}:{i}:{s}')
-        }
-        this.$store.dispatch('keyword/addKeyword', data).then((res) => {
-          data['keyword_id'] = res.data.keyword_id
-          data['update_time'] = data['create_time']
-          data['total'] = 0
-          data['total_detected'] = 0
-          this.handleSubmitKeyword_id(data)
-          this.hightlight = true
-          this.setCurrent(this.tableData[0])
-          let _this = this
-          setTimeout(function() {
-            _this.setCurrent()
-            _this.hightlight = false
-          }, 5000)
-        })
-      },
-      onEmpty() {
-        this.form.desc = ''
-        this.form.region = ''
-      },
-      deleteKeyword() {
+      deleteNews() {
         MessageBox.confirm('确定删除？', {
           confirmButtonText: '删除',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
           for (let item in this.multipleSelection) {
-            this.$store.dispatch('keyword/deleteKeyword', { 'keyword_id': this.multipleSelection[item].keyword_id }).then((res) => {
+            this.$store.dispatch('review/deleteReview', { 'review_id': this.multipleSelection[item].review_id }).then((res) => {
               for (let tab_i in this.tableData) {
-                if (this.tableData[tab_i].keyword_id === this.multipleSelection[item].keyword_id) {
-                  this.allTableData.splice(tab_i, 1)
+                if (this.tableData[tab_i].review_id === this.multipleSelection[item].review_id) {
                   this.tableData.splice(tab_i, 1)
-                  this.getPage()
                 }
               }
+              this.getFavoriteReview()
             })
           }
         })
@@ -194,9 +150,6 @@
       },
       filterLabel(value, row) {
         return row.label === value
-      },
-      setCurrent(row) {
-        this.$refs.multipleTable.setCurrentRow(row);
       },
       format_n(p) {
         return '中立：' + (p / 100).toFixed(10)
@@ -217,15 +170,28 @@
         let end_i = currentPage * this.pagination.pageSize
         this.tableData = JSON.parse(JSON.stringify(this.allTableData.slice(start_i, end_i)))
       },
-      handleSubmitKeyword_id(data) {
+      handleDetectNews(data) {
         this.allTableData.unshift(data)
         this.pagination.currentPage = 1
         this.getPage()
       },
-      handleItem(row) {
+      handleFavorites(row) {
+        MessageBox.confirm('取消收藏？', {
+          confirmButtonText: '确定',
+          cancelButtonText: '关闭',
+          type: 'warning'
+        }).then(() => {
+          this.$store.dispatch('review/favoriteReview', { 'review_id': row['review_id'] }).then((res) => {
+            if (res.statusCode === 200) {
+              this.getFavoriteReview()
+            }
+          })
+        })
+      },
+      handleEvidence(row) {
         this.$router.push({
-          path: '/autoDetectItem',
-          query: { 'keyword': row.keyword, 'keyword_id': row.keyword_id }
+          path: '/evidence',
+          query: { 'review_id': row.review_id }
         })
       },
       handleDelete(row) {
@@ -234,9 +200,9 @@
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.$store.dispatch('keyword/deleteKeyword', { 'keyword_id': row['keyword_id'] }).then((res) => {
+          this.$store.dispatch('review/deleteReview', { 'review_id': row['review_id'] }).then((res) => {
             if (res.statusCode === 200) {
-              this.getReview()
+              this.getFavoriteReview()
             }
           })
         })

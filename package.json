@@ -14,8 +14,10 @@
     "test:ci": "npm run lint && npm run test:unit"
   },
   "dependencies": {
+    "@vue/composition-api": "^1.0.0-rc.8",
     "axios": "0.18.1",
     "core-js": "3.6.5",
+    "echarts-gl": "^2.0.4",
     "element-ui": "2.13.2",
     "js-cookie": "2.2.0",
     "normalize.css": "7.0.0",

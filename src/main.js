@@ -16,6 +16,8 @@ import qs from 'qs';
 import '@/icons' // icon
 import '@/permission' // permission control
 
+import ECharts from 'vue-echarts' // 在 webpack 环境下指向 components/ECharts.vue
+import 'echarts-gl'
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api
@@ -36,6 +38,8 @@ Vue.use(ElementUI, { locale })
 Vue.config.productionTip = false
 
 Vue.prototype.$qs = qs;
+
+Vue.component('v-chart', ECharts)
 
 new Vue({
   el: '#app',

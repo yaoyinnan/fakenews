@@ -1,4 +1,13 @@
-import { detectNews, getNews, deleteNews, recentNews } from '@/api/news'
+import {
+  detectNews,
+  getNews,
+  deleteNews,
+  recentNews,
+  favoriteNews,
+  doubtfulNews,
+  getFavoriteNews,
+  getDoubtfulNews
+} from '@/api/news'
 import { resetRouter } from '@/router'
 
 const actions = {
@@ -39,6 +48,42 @@ const actions = {
       })
     })
   },
+  favoriteNews({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      favoriteNews(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  doubtfulNews({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      doubtfulNews(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  getFavoriteNews({ commit }) {
+    return new Promise((resolve, reject) => {
+      getFavoriteNews().then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  getDoubtfulNews({ commit }) {
+    return new Promise((resolve, reject) => {
+      getDoubtfulNews().then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  }
 }
 
 export default {

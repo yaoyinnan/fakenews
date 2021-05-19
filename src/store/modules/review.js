@@ -1,4 +1,4 @@
-import { addReview, getReview, deleteReview } from '@/api/review'
+import { addReview, getReview, deleteReview, favoriteReview, getFavoriteReview } from '@/api/review'
 import { resetRouter } from '@/router'
 
 const actions = {
@@ -29,7 +29,25 @@ const actions = {
         reject(error)
       })
     })
-  }
+  },
+  favoriteReview({ commit }, data) {
+    return new Promise((resolve, reject) => {
+      favoriteReview(data).then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+  getFavoriteReview({ commit }) {
+    return new Promise((resolve, reject) => {
+      getFavoriteReview().then(response => {
+        resolve(response)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
 }
 
 export default {

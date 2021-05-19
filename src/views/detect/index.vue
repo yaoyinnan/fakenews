@@ -36,8 +36,10 @@
         ref="multipleTable"
         :data="tableData"
         tooltip-effect="dark"
+        :highlight-current-row="hightlight"
         :default-sort="{prop: 'create_time', order: 'descending'}"
         style="width: 100%"
+        @filter-change="filterTagTable"
         @selection-change="handleSelectionChange">
         <el-table-column
           type="selection"
@@ -84,6 +86,33 @@
           label="正文"
           show-overflow-tooltip>
         </el-table-column>
+        <!--<el-table-column-->
+        <!--prop="tag"-->
+        <!--label="标签"-->
+        <!--width="200">-->
+        <!--<el-input v-model="input" placeholder="请输入内容"></el-input>-->
+        <!--</el-table-column>-->
+        <el-table-column
+          fixed="right"
+          width="200">
+          <template #header>
+            <el-input
+              v-model="search"
+              size="mini"
+              placeholder="输入关键字搜索"/>
+          </template>
+          <template #default="scope">
+            <el-button @click="handleFavorites(scope.row)" type="text" size="small">
+              <i :class="[scope.row.is_favorites?'el-icon-star-on':'el-icon-star-off']"></i>收藏
+            </el-button>
+            <el-button @click="handleDoubtful(scope.row)" type="text" size="small">
+              <i :class="[scope.row.is_doubtful?'el-icon-warning':'el-icon-warning-outline']"></i>存疑
+            </el-button>
+            <el-button @click="handleDelete(scope.row)" type="text" size="small">
+              <i class="el-icon-delete"></i>删除
+            </el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </div>
   </div>
@@ -112,8 +141,9 @@
           pageSizes: [5, 10, 25, 50, 100, 250, 500, 1000],
           pageSize: null,
           pageCount: 11
-        }
-
+        },
+        hightlight: false,
+        search: ""
       }
     },
     mounted() {
@@ -121,7 +151,7 @@
       this.getNews()
     },
     methods: {
-      setDefault(){
+      setDefault() {
         this.pagination.pageSize = this.pagination.pageSizes[0]
       },
       getNews() {
@@ -155,6 +185,14 @@
           this.$store.dispatch('news/detectNews', data).then((res) => {
             data['news_id'] = res.data.news_id
             this.handleDetectNews(data)
+            this.onEmpty()
+            this.hightlight = true
+            this.setCurrent(this.tableData[0])
+            let _this = this
+            setTimeout(function() {
+              _this.setCurrent()
+              _this.hightlight = false
+            }, 5000)
           }).catch(() => {
             // MessageBox.confirm('模型正在加载中，请稍等。').then(() => {
             //   setTimeout(function() {
@@ -180,14 +218,13 @@
           type: 'warning'
         }).then(() => {
           for (let item in this.multipleSelection) {
-            this.$store.dispatch('news/deleteNews', {"news_id": this.multipleSelection[item].news_id}).then((res) => {
+            this.$store.dispatch('news/deleteNews', { 'news_id': this.multipleSelection[item].news_id }).then((res) => {
               for (let tab_i in this.tableData) {
                 if (this.tableData[tab_i].news_id === this.multipleSelection[item].news_id) {
-                  this.allTableData.splice(tab_i, 1)
                   this.tableData.splice(tab_i, 1)
-                  this.getPage()
                 }
               }
+              this.getNews()
             })
           }
         })
@@ -206,6 +243,9 @@
       },
       filterLabel(value, row) {
         return row.label === value
+      },
+      setCurrent(row) {
+        this.$refs.multipleTable.setCurrentRow(row);
       },
       format_n(p) {
         return '中立：' + (p / 100).toFixed(10)
@@ -226,10 +266,44 @@
         let end_i = currentPage * this.pagination.pageSize
         this.tableData = JSON.parse(JSON.stringify(this.allTableData.slice(start_i, end_i)))
       },
-      handleDetectNews(data){
+      handleDetectNews(data) {
         this.allTableData.unshift(data)
         this.pagination.currentPage = 1
         this.getPage()
+      },
+      handleFavorites(row) {
+        this.$store.dispatch('news/favoriteNews', { 'news_id': row['news_id'] }).then((res) => {
+          if (res.statusCode === 200) {
+            this.getNews()
+          }
+        })
+      },
+      handleDoubtful(row) {
+        this.$store.dispatch('news/doubtfulNews', { 'news_id': row['news_id'] }).then((res) => {
+          if (res.statusCode === 200) {
+            this.getNews()
+          }
+        })
+      },
+      handleDelete(row) {
+        MessageBox.confirm('确定删除？', {
+          confirmButtonText: '删除',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$store.dispatch('news/deleteNews', { 'news_id': row['news_id'] }).then((res) => {
+            if (res.statusCode === 200) {
+              this.getNews()
+            }
+          })
+        })
+      },
+      filterTagTable(filters){
+        console.log(filters)
+        // if(filters.aStatus){
+        //   this.listQuery.status = filters.aStatus[0]
+        // }
+        // this.getAll() // 筛选所选项下的所有数据，需要调用后端接口
       }
     }
   }

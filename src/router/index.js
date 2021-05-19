@@ -72,19 +72,33 @@ export const constantRoutes = [
     component: Layout,
     redirect: '/detect/detect',
     name: 'Detect',
-    meta: { title: '假新闻检测', icon: 'el-icon-aim' },
-    children: [{
-      path: 'detect',
-      name: 'Detect',
-      component: () => import('@/views/detect/index'),
-      meta: { title: '人工检测', icon: 'form' }
-    },
+    meta: { title: '人工检测', icon: 'el-icon-aim' },
+    children: [
+      {
+        path: 'detect',
+        name: 'Detect',
+        component: () => import('@/views/detect/index'),
+        meta: { title: '检测新闻', icon: 'form' }
+      },
       {
         path: 'recent',
         name: 'Recent',
         component: () => import('@/views/detect/recent'),
         meta: { title: '近日新闻', icon: 'el-icon-receiving' }
-      }]
+      },
+      {
+        path: 'favorite',
+        name: 'Favorite',
+        component: () => import('@/views/detect/favorite'),
+        meta: { title: '收藏新闻', icon: 'el-icon-star-off' }
+      },
+      {
+        path: 'doubtful',
+        name: 'Doubtful',
+        component: () => import('@/views/detect/doubtful'),
+        meta: { title: '存疑新闻', icon: 'el-icon-warning-outline' }
+      }
+    ]
   },
 
   /**
@@ -110,18 +124,50 @@ export const constantRoutes = [
   },
 
   /**
-   * 新闻审核
+   * 新闻辟谣
    */
   {
     path: '/review',
     component: Layout,
+    redirect: '/review/review',
+    name: 'Review',
+    meta: { title: '新闻审核', icon: 'el-icon-aim' },
+    children: [
+      {
+        path: 'review',
+        name: 'Review',
+        component: () => import('@/views/review/index'),
+        meta: { title: '新闻辟谣', icon: 'link' }
+      },
+      {
+        path: 'reviewFavorite',
+        name: 'ReviewFavorite',
+        component: () => import('@/views/review/favorite'),
+        meta: { title: '收藏辟谣', icon: 'el-icon-star-off' }
+      },
+      /**
+       * 证据页
+       */
+      {
+        path: '/evidence',
+        component: () => import('@/views/review/evidence'),
+        hidden: true
+      }
+    ]
+  },
+
+  // 测试
+  {
+    path: '/test',
+    component: Layout,
     children: [{
-      path: 'review',
-      name: 'Review',
-      component: () => import('@/views/review/index'),
-      meta: { title: '新闻审核', icon: 'link' }
+      path: 'test',
+      name: 'Test',
+      component: () => import('@/views/test/index'),
+      meta: { title: '测试', icon: 'link' }
     }]
   },
+
   //
   // {
   //   path: '/example',
@@ -235,9 +281,9 @@ export const constantRoutes = [
 const createRouter = () => new Router({
   // mode: 'history', // require service support
   scrollBehavior: () => ({ y: 0 }),
-  base:'/dist/',
-  mode: 'history',
-  routes: constantRoutes,
+  base: '/dist/',
+  // mode: 'history',
+  routes: constantRoutes
 })
 
 const router = createRouter()

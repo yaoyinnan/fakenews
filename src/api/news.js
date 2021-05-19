@@ -29,3 +29,35 @@ export function recentNews() {
     method: 'get'
   })
 }
+
+export function favoriteNews(query) {
+  return request({
+    url: '/member/news/favoriteNews',
+    method: 'post',
+    data: query
+  })
+}
+
+export function doubtfulNews(query) {
+  return request({
+    url: '/member/news/doubtfulNews',
+    method: 'post',
+    data: query
+  })
+}
+
+
+export function getFavoriteNews() {
+  return request({
+    url: '/member/news/getFavoriteNews',
+    method: 'get'
+  })
+}
+
+
+export function getDoubtfulNews() {
+  return request({
+    url: '/member/news/getDoubtfulNews',
+    method: 'get'
+  })
+}

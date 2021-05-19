@@ -22,3 +22,19 @@ export function deleteReview(query) {
     data: query
   })
 }
+
+export function favoriteReview(query) {
+  return request({
+    url: '/member/review/favoriteReview',
+    method: 'post',
+    data: query
+  })
+}
+
+
+export function getFavoriteReview() {
+  return request({
+    url: '/member/review/getFavoriteReview',
+    method: 'get'
+  })
+}

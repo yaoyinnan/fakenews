@@ -8,6 +8,7 @@ import detect from './modules/detect'
 import news from './modules/news'
 import review from './modules/review'
 import keyword from './modules/keyword'
+import evidence from './modules/evidence'
 
 Vue.use(Vuex)
 
@@ -20,6 +21,7 @@ const store = new Vuex.Store({
     news,
     review,
     keyword,
+    evidence,
   },
   getters
 })
