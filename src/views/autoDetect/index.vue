@@ -1,97 +1,106 @@
 <template>
   <div class="app-container">
     <!--Form-->
-    <div class="form">
-      <el-form ref="form" :model="form" label-width="120px">
-        <el-form-item label="关键词">
-          <el-input v-model="form.keyword"/>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="submit">提交</el-button>
-          <el-button @click="onEmpty">清空</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
-
+    <el-row>
+      <el-col :span="24">
+        <div class="form">
+          <el-form ref="form" :model="form" label-width="120px">
+            <el-form-item label="关键词">
+              <el-input v-model="form.keyword"/>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="submit">提交</el-button>
+              <el-button @click="onEmpty">清空</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </el-col>
+    </el-row>
     <el-divider></el-divider>
-
     <!--Table-->
-    <div class="display">
-      <el-button type="danger" @click="deleteKeyword">删除</el-button>
+    <el-row>
+      <el-col :span="24">
+        <div class="display">
+          <el-button type="danger" @click="deleteKeyword">删除</el-button>
 
-      <el-pagination
-        background
-        class="pagination"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page.sync="pagination.currentPage"
-        :page-sizes="pagination.pageSizes"
-        :page-size="pagination.pageSize"
-        :pager-count="pagination.pageCount"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="allTableData.length">
-      </el-pagination>
+          <el-pagination
+            background
+            class="pagination"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page.sync="pagination.currentPage"
+            :page-sizes="pagination.pageSizes"
+            :page-size="pagination.pageSize"
+            :pager-count="pagination.pageCount"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="allTableData.length">
+          </el-pagination>
 
-      <el-table
-        ref="multipleTable"
-        :data="tableData"
-        tooltip-effect="dark"
-        :highlight-current-row="hightlight"
-        :default-sort="{prop: 'update_time', order: 'descending'}"
-        style="width: 100%"
-        @selection-change="handleSelectionChange">
-        <el-table-column
-          type="selection"
-          width="55">
-        </el-table-column>
-        <el-table-column
-          prop="create_time"
-          label="创建时间"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.create_time }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="update_time"
-          label="更新时间"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.update_time }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="total"
-          label="新闻数目"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.total }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="total_detected"
-          label="已检测数目"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.total_detected }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="keyword"
-          label="关键词">
-          <template #default="scope">{{ scope.row.keyword}}</template>
-        </el-table-column>
-        <el-table-column
-          fixed="right"
-          label="操作"
-          width="200">
-          <template #default="scope">
-            <el-button @click="handleItem(scope.row)" type="text" size="small">
-              <i class="el-icon-folder-opened"></i>查看
-            </el-button>
-            <el-button @click="handleDelete(scope.row)" type="text" size="small">
-              <i class="el-icon-delete"></i>删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
+          <el-table
+            ref="multipleTable"
+            :data="tableData"
+            tooltip-effect="dark"
+            :highlight-current-row="hightlight"
+            :default-sort="{prop: 'update_time', order: 'descending'}"
+            style="width: 100%"
+            @selection-change="handleSelectionChange">
+            <el-table-column
+              type="selection"
+              width="55">
+            </el-table-column>
+            <el-table-column
+              prop="create_time"
+              label="创建时间"
+              width="150"
+              sortable>
+              <template #default="scope">{{ scope.row.create_time }}</template>
+            </el-table-column>
+            <el-table-column
+              prop="update_time"
+              label="更新时间"
+              width="150"
+              sortable>
+              <template #default="scope">{{ scope.row.update_time }}</template>
+            </el-table-column>
+            <el-table-column
+              prop="total"
+              label="新闻数目"
+              width="150"
+              sortable>
+              <template #default="scope">{{ scope.row.total }}</template>
+            </el-table-column>
+            <el-table-column
+              prop="total_detected"
+              label="已检测数目"
+              width="150"
+              sortable>
+              <template #default="scope">{{ scope.row.total_detected }}</template>
+            </el-table-column>
+            <el-table-column
+              prop="keyword"
+              label="关键词">
+              <template #default="scope">{{ scope.row.keyword}}</template>
+            </el-table-column>
+            <el-table-column
+              fixed="right"
+              label="操作"
+              width="200">
+              <template #default="scope">
+                <el-button @click="handleItem(scope.row)" type="text" size="small">
+                  <i class="el-icon-folder-opened"></i>查看
+                </el-button>
+                <el-button @click="handleUpdate(scope.row)" type="text" size="small">
+                  <i class="el-icon-refresh"></i>更新
+                </el-button>
+                <el-button @click="handleDelete(scope.row)" type="text" size="small">
+                  <i class="el-icon-delete"></i>删除
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -114,7 +123,7 @@
           pageSize: null,
           pageCount: 11
         },
-        hightlight: false,
+        hightlight: false
       }
     },
     mounted() {
@@ -158,8 +167,7 @@
         })
       },
       onEmpty() {
-        this.form.desc = ''
-        this.form.region = ''
+        this.form.keyword = ''
       },
       deleteKeyword() {
         MessageBox.confirm('确定删除？', {
@@ -173,7 +181,7 @@
                 if (this.tableData[tab_i].keyword_id === this.multipleSelection[item].keyword_id) {
                   this.allTableData.splice(tab_i, 1)
                   this.tableData.splice(tab_i, 1)
-                  this.getPage()
+                  this.getKeyword()
                 }
               }
             })
@@ -196,7 +204,7 @@
         return row.label === value
       },
       setCurrent(row) {
-        this.$refs.multipleTable.setCurrentRow(row);
+        this.$refs.multipleTable.setCurrentRow(row)
       },
       format_n(p) {
         return '中立：' + (p / 100).toFixed(10)
@@ -228,6 +236,28 @@
           query: { 'keyword': row.keyword, 'keyword_id': row.keyword_id }
         })
       },
+      handleUpdate(row) {
+        MessageBox.confirm('是否要爬取最新的新闻？', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let data = {
+            'keyword': row.keyword,
+            'create_time': parseTime(new Date(), '{y}-{m}-{d} {h}:{i}:{s}')
+          }
+          this.$store.dispatch('keyword/addKeyword', data).then((res) => {
+            this.getKeyword()
+            this.hightlight = true
+            this.setCurrent(row)
+            let _this = this
+            setTimeout(function() {
+              _this.setCurrent()
+              _this.hightlight = false
+            }, 5000)
+          })
+        })
+      },
       handleDelete(row) {
         MessageBox.confirm('确定删除？', {
           confirmButtonText: '删除',
@@ -235,9 +265,7 @@
           type: 'warning'
         }).then(() => {
           this.$store.dispatch('keyword/deleteKeyword', { 'keyword_id': row['keyword_id'] }).then((res) => {
-            if (res.statusCode === 200) {
-              this.getReview()
-            }
+            this.getKeyword()
           })
         })
       }

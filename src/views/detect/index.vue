@@ -1,128 +1,163 @@
 <template>
   <div class="app-container">
-    <!--Form-->
-    <div class="form">
-      <el-form ref="form" :model="form" label-width="120px">
-        <el-form-item label="新闻内容">
-          <el-input v-model="form.desc" type="textarea"/>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="onDetect">检测</el-button>
-          <el-button @click="onEmpty">清空</el-button>
-        </el-form-item>
-      </el-form>
-    </div>
-
+    <!--Charts-->
+    <el-row>
+      <el-col :span="5">
+        <newsDoughnutData></newsDoughnutData>
+      </el-col>
+      <el-col :span="8">
+        <newBarChart></newBarChart>
+      </el-col>
+      <el-col :span="11">
+        <div class="form">
+          <el-form ref="form" :model="form" label-width="120px">
+            <el-form-item label="新闻内容">
+              <el-input v-model="form.desc" type="textarea"/>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="onDetect">检测</el-button>
+              <el-button @click="onEmpty">清空</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+      </el-col>
+    </el-row>
     <el-divider></el-divider>
-
+    <!--Form-->
+    <!--<el-row>-->
+      <!--<el-col :span="24">-->
+          <!--<div class="form">-->
+            <!--<el-form ref="form" :model="form" label-width="120px">-->
+              <!--<el-form-item label="新闻内容">-->
+                <!--<el-input v-model="form.desc" type="textarea"/>-->
+              <!--</el-form-item>-->
+              <!--<el-form-item>-->
+                <!--<el-button type="primary" @click="onDetect">检测</el-button>-->
+                <!--<el-button @click="onEmpty">清空</el-button>-->
+              <!--</el-form-item>-->
+            <!--</el-form>-->
+            <!--<el-divider></el-divider>-->
+          <!--</div>-->
+      <!--</el-col>-->
+    <!--</el-row>-->
     <!--Table-->
-    <div class="display">
-      <el-button type="danger" @click="deleteNews">删除</el-button>
+    <el-row>
+      <el-col :span="24">
+          <div class="display">
+            <el-button type="danger" @click="deleteNews">删除</el-button>
 
-      <el-pagination
-        background
-        class="pagination"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page.sync="pagination.currentPage"
-        :page-sizes="pagination.pageSizes"
-        :page-size="pagination.pageSize"
-        :pager-count="pagination.pageCount"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="allTableData.length">
-      </el-pagination>
+            <el-pagination
+              background
+              class="pagination"
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page.sync="pagination.currentPage"
+              :page-sizes="pagination.pageSizes"
+              :page-size="pagination.pageSize"
+              :pager-count="pagination.pageCount"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="allTableData.length">
+            </el-pagination>
 
-      <el-table
-        ref="multipleTable"
-        :data="tableData"
-        tooltip-effect="dark"
-        :highlight-current-row="hightlight"
-        :default-sort="{prop: 'create_time', order: 'descending'}"
-        style="width: 100%"
-        @filter-change="filterTagTable"
-        @selection-change="handleSelectionChange">
-        <el-table-column
-          type="selection"
-          width="55">
-        </el-table-column>
-        <el-table-column
-          prop="create_time"
-          label="日期"
-          width="150"
-          sortable>
-          <template #default="scope">{{ scope.row.create_time }}</template>
-        </el-table-column>
-        <el-table-column
-          prop="label"
-          label="真假性"
-          width="100"
-          sortable
-          :filters="[{ text: '中立', value: '中立' }, { text: '虚假', value: '虚假' }, { text: '真实', value: '真实' }]"
-          :filter-method="filterLabel"
-          filter-placement="bottom-end">
-          <template #default="scope">
-            <el-tag
-              :type="labelColor[scope.row.label]"
-              disable-transitions>{{scope.row.label}}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="score"
-          label="检测值"
-          width="300"
-          show-overflow-tooltip>
-          <template #default="scope">
-            <el-progress :percentage="scope.row.n_score * 100" :format="format_n" class="el-bg-inner-n">
-            </el-progress>
-            <el-progress :percentage="scope.row.f_score * 100" :format="format_f" class="el-bg-inner-f">
-            </el-progress>
-            <el-progress :percentage="scope.row.r_score * 100" :format="format_r" class="el-bg-inner-r">
-            </el-progress>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="content"
-          label="正文"
-          show-overflow-tooltip>
-        </el-table-column>
-        <!--<el-table-column-->
-        <!--prop="tag"-->
-        <!--label="标签"-->
-        <!--width="200">-->
-        <!--<el-input v-model="input" placeholder="请输入内容"></el-input>-->
-        <!--</el-table-column>-->
-        <el-table-column
-          fixed="right"
-          width="200">
-          <template #header>
-            <el-input
-              v-model="search"
-              size="mini"
-              placeholder="输入关键字搜索"/>
-          </template>
-          <template #default="scope">
-            <el-button @click="handleFavorites(scope.row)" type="text" size="small">
-              <i :class="[scope.row.is_favorites?'el-icon-star-on':'el-icon-star-off']"></i>收藏
-            </el-button>
-            <el-button @click="handleDoubtful(scope.row)" type="text" size="small">
-              <i :class="[scope.row.is_doubtful?'el-icon-warning':'el-icon-warning-outline']"></i>存疑
-            </el-button>
-            <el-button @click="handleDelete(scope.row)" type="text" size="small">
-              <i class="el-icon-delete"></i>删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
+            <el-table
+              ref="multipleTable"
+              :data="tableData"
+              tooltip-effect="dark"
+              :highlight-current-row="hightlight"
+              :default-sort="{prop: 'create_time', order: 'descending'}"
+              style="width: 100%"
+              @filter-change="filterTagTable"
+              @selection-change="handleSelectionChange">
+              <el-table-column
+                type="selection"
+                width="55">
+              </el-table-column>
+              <el-table-column
+                prop="create_time"
+                label="日期"
+                width="150"
+                sortable>
+                <template #default="scope">{{ scope.row.create_time }}</template>
+              </el-table-column>
+              <el-table-column
+                prop="label"
+                label="真假性"
+                width="100"
+                sortable
+                :filters="[{ text: '中立', value: '中立' }, { text: '虚假', value: '虚假' }, { text: '真实', value: '真实' }]"
+                :filter-method="filterLabel"
+                filter-placement="bottom-end">
+                <template #default="scope">
+                  <el-tag
+                    :type="labelColor[scope.row.label]"
+                    disable-transitions>{{scope.row.label}}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="score"
+                label="检测值"
+                width="300"
+                show-overflow-tooltip>
+                <template #default="scope">
+                  <el-progress :percentage="scope.row.n_score * 100" :format="format_n" class="el-bg-inner-n">
+                  </el-progress>
+                  <el-progress :percentage="scope.row.f_score * 100" :format="format_f" class="el-bg-inner-f">
+                  </el-progress>
+                  <el-progress :percentage="scope.row.r_score * 100" :format="format_r" class="el-bg-inner-r">
+                  </el-progress>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="content"
+                label="正文"
+                show-overflow-tooltip>
+              </el-table-column>
+              <!--<el-table-column-->
+              <!--prop="tag"-->
+              <!--label="标签"-->
+              <!--width="200">-->
+              <!--<el-input v-model="input" placeholder="请输入内容"></el-input>-->
+              <!--</el-table-column>-->
+              <el-table-column
+                fixed="right"
+                width="200">
+                <template #header>
+                  <el-input
+                    v-model="search"
+                    size="mini"
+                    placeholder="输入关键字搜索"/>
+                </template>
+                <template #default="scope">
+                  <el-button @click="handleFavorites(scope.row)" type="text" size="small">
+                    <i :class="[scope.row.is_favorites?'el-icon-star-on':'el-icon-star-off']"></i>收藏
+                  </el-button>
+                  <el-button @click="handleDoubtful(scope.row)" type="text" size="small">
+                    <i :class="[scope.row.is_doubtful?'el-icon-warning':'el-icon-warning-outline']"></i>存疑
+                  </el-button>
+                  <el-button @click="handleDelete(scope.row)" type="text" size="small">
+                    <i class="el-icon-delete"></i>删除
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script>
   import { MessageBox } from 'element-ui'
   import parseTime from '../../utils/index'
+  import newBarChart from '../../components/Charts/newsBarChart'
+  import newsDoughnutData from '../../components/Charts/newsDoughnutChart'
 
   export default {
+    components: {
+      newBarChart,
+      newsDoughnutData
+    },
     data() {
       return {
         form: {
@@ -143,7 +178,7 @@
           pageCount: 11
         },
         hightlight: false,
-        search: ""
+        search: ''
       }
     },
     mounted() {
@@ -245,7 +280,7 @@
         return row.label === value
       },
       setCurrent(row) {
-        this.$refs.multipleTable.setCurrentRow(row);
+        this.$refs.multipleTable.setCurrentRow(row)
       },
       format_n(p) {
         return '中立：' + (p / 100).toFixed(10)
@@ -298,7 +333,7 @@
           })
         })
       },
-      filterTagTable(filters){
+      filterTagTable(filters) {
         console.log(filters)
         // if(filters.aStatus){
         //   this.listQuery.status = filters.aStatus[0]
@@ -310,6 +345,11 @@
 </script>
 
 <style scoped>
+  .form{
+    margin-top:30px;
+    height: 270px;
+  }
+
   .line {
     text-align: center;
   }
@@ -321,7 +361,7 @@
   }
 
   .el-textarea__inner {
-    height: 120px;
+    height: 220px!important;
     padding: 10px 15px;
   }
 

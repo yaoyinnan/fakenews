@@ -70,7 +70,6 @@ export const constantRoutes = [
   {
     path: '/detect',
     component: Layout,
-    redirect: '/detect/detect',
     name: 'Detect',
     meta: { title: '人工检测', icon: 'el-icon-aim' },
     children: [
@@ -78,14 +77,9 @@ export const constantRoutes = [
         path: 'detect',
         name: 'Detect',
         component: () => import('@/views/detect/index'),
-        meta: { title: '检测新闻', icon: 'form' }
+        meta: { title: '检测新闻', icon: 'el-icon-edit-outline' }
       },
-      {
-        path: 'recent',
-        name: 'Recent',
-        component: () => import('@/views/detect/recent'),
-        meta: { title: '近日新闻', icon: 'el-icon-receiving' }
-      },
+
       {
         path: 'favorite',
         name: 'Favorite',
@@ -100,6 +94,21 @@ export const constantRoutes = [
       }
     ]
   },
+
+  /**
+   * 近日新闻
+   */
+  {
+    path: '/recent',
+    component: Layout,
+    children: [{
+      path: 'recent',
+      name: 'Recent',
+      component: () => import('@/views/detect/recent'),
+      meta: { title: '近日新闻', icon: 'el-icon-receiving' }
+    }]
+  },
+
 
   /**
    * 自动检测
@@ -129,7 +138,6 @@ export const constantRoutes = [
   {
     path: '/review',
     component: Layout,
-    redirect: '/review/review',
     name: 'Review',
     meta: { title: '新闻审核', icon: 'el-icon-aim' },
     children: [
@@ -137,7 +145,7 @@ export const constantRoutes = [
         path: 'review',
         name: 'Review',
         component: () => import('@/views/review/index'),
-        meta: { title: '新闻辟谣', icon: 'link' }
+        meta: { title: '新闻辟谣', icon: 'el-icon-document-checked' }
       },
       {
         path: 'reviewFavorite',
@@ -156,17 +164,17 @@ export const constantRoutes = [
     ]
   },
 
-  // 测试
-  {
-    path: '/test',
-    component: Layout,
-    children: [{
-      path: 'test',
-      name: 'Test',
-      component: () => import('@/views/test/index'),
-      meta: { title: '测试', icon: 'link' }
-    }]
-  },
+  // // 测试
+  // {
+  //   path: '/test',
+  //   component: Layout,
+  //   children: [{
+  //     path: 'test',
+  //     name: 'Test',
+  //     component: () => import('@/views/test/index'),
+  //     meta: { title: '测试', icon: 'link' }
+  //   }]
+  // },
 
   //
   // {
